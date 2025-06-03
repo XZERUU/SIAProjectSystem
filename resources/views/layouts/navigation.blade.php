@@ -1,178 +1,102 @@
-<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-    <!-- Primary Navigation Menu -->
+<nav x-data="{ open: false }" class="bg-gray-900 text-white shadow-lg">
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <img src="{{ asset('images/tx.png') }}"
-                             alt="TEMPX logo"
-                             class="block object-contain p-1 h-16 w-16">
-                    </a>
-                </div>
+        <div class="flex justify-between h-16 items-center">
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('plants.index')" :active="request()->routeIs('plants.*')">
-                        {{ __('Plants') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('sensors.globalIndex')" :active="request()->routeIs('sensors.globalIndex')">
-                        {{ __('Sensors') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('transactions.globalIndex')" :active="request()->routeIs('transactions.globalIndex')">
-                        {{ __('Transactions') }}
-                    </x-nav-link>
-                </div>
+            {{-- Logo --}}
+            <div class="flex-shrink-0">
+                <a href="{{ route(Auth::check() ? (Auth::user()->role === 'admin' ? 'dashboard' : (Auth::user()->role === 'user' ? 'user' : 'users.index')) : 'welcome') }}">
+                    <x-application-logo class="h-10 w-10" />
+                </a>
             </div>
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ml-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="flex items-center space-x-2 text-sm border border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                            <img
-                                style="height: 34px; width: 34px;"
-                                class="rounded-full"
-                                src="{{ Auth::user()->avatar
-                                         ? asset('storage/' . Auth::user()->avatar)
-                                         : asset('images/default-profile.png') }}"
-                                alt="profile"
-                            />
-                            <div class="text-white">{{ Auth::user()->name }}</div>
+            {{-- Desktop Menu --}}
+            <div class="hidden md:flex md:space-x-8 md:items-center">
+                @if(Auth::check() && Auth::user()->role === 'admin')
+                    <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'underline' : '' }} hover:text-gray-300 font-semibold">Dashboard</a>
+                @elseif(Auth::check() && Auth::user()->role === 'user')
+                    <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'underline' : '' }} hover:text-gray-300 font-semibold">User Page</a>
+                    <a href="{{ route('plants.index') }}" class="{{ request()->routeIs('plants.*') ? 'underline' : '' }} hover:text-gray-300 font-semibold">Plants</a>
+                    <a href="{{ route('sensors.globalIndex') }}" class="{{ request()->routeIs('sensors.*') ? 'underline' : '' }} hover:text-gray-300 font-semibold">Sensors</a>
+                    <a href="{{ route('transactions.globalIndex') }}" class="{{ request()->routeIs('transactions.*') ? 'underline' : '' }} hover:text-gray-300 font-semibold">Transactions</a>
+                @endif
+            </div>
 
-                            <div class="ml-1">
-                                <svg class="fill-current h-4 w-4"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0
-                                             111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                          clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                {{-- Avatar and Logout --}}
+                <div class="hidden md:flex md:items-center md:space-x-4">
+<label for="avatar-upload" class="cursor-pointer">
+    <img src="{{ auth()->check() && auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : asset('images/default-profile.png') }}" alt="Avatar" class="w-10 h-10 rounded-full" />
+</label>
+<form id="avatar-upload-form" method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="hidden">
+    @csrf
+    @method('patch')
+    <input id="avatar-upload" type="file" name="avatar" accept="image/*" onchange="document.getElementById('avatar-upload-form').submit();" />
+</form>
+                    <span class="font-semibold">{{ auth()->check() ? Auth::user()->name : '' }}</span>
+
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="text-red-500 hover:text-red-600 font-semibold ml-4">
+                            Log Out
                         </button>
-                    </x-slot>
+                    </form>
+                </div>
 
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <x-dropdown-link
-                                :href="route('logout')"
-                                onclick="event.preventDefault(); this.closest('form').submit();"
-                            >
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
-
-            <!-- Hamburger -->
-            <div class="-mr-2 flex items-center sm:hidden">
-                <button
-                    @click="open = ! open"
-                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500
-                           hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900
-                           focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400
-                           transition duration-150 ease-in-out"
-                >
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path
-                            :class="{ 'hidden': open, 'inline-flex': !open }"
-                            class="inline-flex"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16"
-                        />
-                        <path
-                            :class="{ 'hidden': !open, 'inline-flex': open }"
-                            class="hidden"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        />
+            {{-- Mobile menu button --}}
+            <div class="flex md:hidden">
+                <button @click="open = !open" type="button" class="inline-flex items-center justify-center p-2 rounded-md hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" aria-expanded="false">
+                    <span class="sr-only">Open main menu</span>
+                    <svg x-show="!open" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                    </svg>
+                    <svg x-show="open" x-cloak class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
+
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link
-                :href="route('dashboard')"
-                :active="request()->routeIs('dashboard')"
-            >
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+    {{-- Mobile menu, show/hide with Alpine --}}
+    <div x-show="open" x-cloak class="md:hidden bg-gray-800 border-t border-gray-700">
+        <div class="px-2 pt-2 pb-3 space-y-1">
 
-            <x-responsive-nav-link
-                :href="route('plants.index')"
-                :active="request()->routeIs('plants.*')"
-            >
-                {{ __('Plants') }}
-            </x-responsive-nav-link>
+            @if(Auth::check() && Auth::user()->role === 'admin')
+                <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-md text-base font-semibold hover:bg-gray-700 {{ request()->routeIs('dashboard') ? 'bg-gray-700' : '' }}">
+                    Dashboard
+                </a>
+                <!-- Removed invalid route 'TotalPlants' -->
+                
+            @elseif(Auth::check() && Auth::user()->role === 'user')
+                <a href="{{ route('user') }}" class="block px-3 py-2 rounded-md text-base font-semibold hover:bg-gray-700 {{ request()->routeIs('user') ? 'bg-gray-700' : '' }}">
+                    User Page
+                </a>
+                <a href="{{ route('plants.index') }}" class="block px-3 py-2 rounded-md text-base font-semibold hover:bg-gray-700 {{ request()->routeIs('plants.*') ? 'bg-gray-700' : '' }}">
+                    Plants
+                </a>
+                <a href="{{ route('sensors.globalIndex') }}" class="block px-3 py-2 rounded-md text-base font-semibold hover:bg-gray-700 {{ request()->routeIs('sensors.*') ? 'bg-gray-700' : '' }}">
+                    Sensors
+                </a>
+                <a href="{{ route('transactions.globalIndex') }}" class="block px-3 py-2 rounded-md text-base font-semibold hover:bg-gray-700 {{ request()->routeIs('transactions.*') ? 'bg-gray-700' : '' }}">
+                    Transactions
+                </a>
+            @endif
 
-            <x-responsive-nav-link
-                :href="route('sensors.globalIndex')"
-                :active="request()->routeIs('sensors.globalIndex')"
-            >
-                {{ __('Sensors') }}
-            </x-responsive-nav-link>
+            <div class="border-t border-gray-700 mt-3 pt-3">
+                <div class="flex items-center space-x-3 px-3">
+                    <img src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : asset('images/default-avatar.png') }}" alt="Avatar" class="w-10 h-10 rounded-full" />
+                    <span class="font-semibold">{{ Auth::user()->name }}</span>
+                </div>
 
-            <x-responsive-nav-link
-                :href="route('transactions.globalIndex')"
-                :active="request()->routeIs('transactions.globalIndex')"
-            >
-                {{ __('Transactions') }}
-            </x-responsive-nav-link>
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-            <div class="px-4 text-center">
-                <img
-                    class="rounded-full h-12 w-12 mx-auto mb-2"
-                    src="{{ Auth::user()->avatar
-                             ? asset('storage/' . Auth::user()->avatar)
-                             : asset('images/default-profile.png') }}"
-                    alt="profile"
-                />
-                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" class="mt-3 px-3">
                     @csrf
-                    <x-responsive-nav-link
-                        :href="route('logout')"
-                        onclick="event.preventDefault(); this.closest('form').submit();"
-                    >
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-md">
+                        Log Out
+                    </button>
                 </form>
             </div>
         </div>
     </div>
+
 </nav>

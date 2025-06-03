@@ -22,31 +22,32 @@ class PlantController extends Controller
 
     public function create()
     {
-        $growthStages = ['Seedling', 'Vegetative', 'Budding', 'Flowering', 'Ripening'];
-
-        return view('plants.create', [
-            'plant' => null,
-            'growthStages' => $growthStages
-        ]);
+    $growthStages = ['Seedling', 'Vegetative', 'Budding', 'Flowering', 'Ripening'];
+    return view('plants.create', compact('growthStages'));
     }
+
 
     public function store(Request $request)
     {
-        $request->validate([
-            'plant_name' => 'required',
-            'location' => 'required',
-            'growth_stage' => 'required',
-            'planting_date' => 'required|date',
-        ]);
+    $request->validate([
+        'custom_id' => 'required|string|max:255',
+        'name' => 'required|string|max:255',
+        'plant_name' => 'required|string|max:255',
+        'location' => 'required|string|max:255',
+        'growth_stage' => 'required|string|max:255',
+        'planting_date' => 'required|date',
+    ]);
 
-        Plant::create([
-            'plant_name' => $request->input('plant_name'),
-            'location' => $request->input('location'),
-            'growth_stage' => $request->input('growth_stage'),
-            'planting_date' => $request->input('planting_date'),
-        ]);
+    Plant::create([
+        'custom_id' => $request->input('custom_id'),
+        'name' => $request->input('name'),
+        'plant_name' => $request->input('plant_name'),
+        'location' => $request->input('location'),
+        'growth_stage' => $request->input('growth_stage'),
+        'planting_date' => $request->input('planting_date'),
+    ]);
 
-        return redirect()->route('plants.index')->with('success', 'Plant added successfully!');
+    return redirect()->route('plants.index')->with('success', 'Plant added successfully!');
     }
 
     public function show(Plant $plant)

@@ -47,6 +47,12 @@
             @endif
         </div>
 
+        <div>
+            <x-input-label for="avatar" :value="__('Profile Avatar')" />
+            <input id="avatar" name="avatar" type="file" class="mt-1 block w-full" accept="image/*" />
+            <x-input-error class="mt-2" :messages="$errors->get('avatar')" />
+        </div>
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 

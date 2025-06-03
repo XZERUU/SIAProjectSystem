@@ -9,12 +9,7 @@ class Plant extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'plant_name',
-        'location',
-        'growth_stage',
-        'planting_date',
-    ];
+    protected $fillable = ['custom_id', 'name', 'plant_name', 'location', 'growth_stage', 'planting_date'];
 
     protected $casts = [
         'planting_date' => 'date',

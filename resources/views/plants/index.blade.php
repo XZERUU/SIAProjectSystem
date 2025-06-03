@@ -47,7 +47,6 @@
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Plant Name</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Growth Stage</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Planting Date</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Temperature (°C)</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
                     </tr>
                 </thead>
@@ -59,31 +58,20 @@
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $plant->plant_name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $plant->growth_stage }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $plant->planting_date->format('Y-m-d') }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $plant->temperature }}°C</td>
                         <td class="px-6 py-4 text-sm text-gray-600">
                             <div class="flex space-x-2">
-                                <!-- ✅ Edit Button (Green) -->
-                                <a href="{{ route('plants.edit', $plant->id) }}"
-                                   class="block bg-green-600 hover:bg-green-700 text-black font-semibold px-4 py-1 rounded shadow">
-                                    Edit
-                                </a>
-                        
-                                <!-- ❌ Delete Button (Red) -->
+                                <a href="{{ route('plants.edit', $plant->id) }}" class="block bg-green-600 hover:bg-green-700 text-black font-semibold px-4 py-1 rounded shadow">Edit</a>
                                 <form action="{{ route('plants.destroy', $plant->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this plant?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit"
-                                            class="block bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1 rounded shadow">
-                                        Delete
-                                    </button>
+                                    <button type="submit" class="block bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1 rounded shadow">Delete</button>
                                 </form>
                             </div>
                         </td>
-                       
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-6 text-center text-gray-500 bg-gray-50">
+                        <td colspan="6" class="px-6 py-6 text-center text-gray-500 bg-gray-50">
                             <div class="flex justify-center items-center space-x-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-7.536 5.879a1 1 0 001.415 0 3 3 0 014.242 0 1 1 0 001.415-1.415 5 5 0 00-7.072 0 1 1 0 000 1.415z" clip-rule="evenodd" />

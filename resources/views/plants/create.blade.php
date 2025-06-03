@@ -6,6 +6,16 @@
         {{ isset($plant) ? 'Edit Plant Record' : 'Add New Plant' }}
     </h2>
 
+    @if ($errors->any())
+    <div class="bg-red-600 text-white p-4 mb-4 rounded">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     <form method="POST" action="{{ isset($plant) ? route('plants.update', $plant->id) : route('plants.store') }}">
         @csrf
         @if(isset($plant))
@@ -52,6 +62,13 @@
                 </select>
             </div>
 
+            <div>
+                <label for="location" class="block text-sm font-medium text-white">Location</label>
+                <input type="text" name="location" id="location" required
+                       value="{{ old('location', $plant->location ?? '') }}"
+                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
             <!-- Planting Date -->
             <div>
                 <label for="planting_date" class="block text-sm font-medium text-white">Planting Date</label>
@@ -60,13 +77,6 @@
                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             </div>
 
-            <!-- Temperature -->
-            <div>
-                <label for="temperature" class="block text-sm font-medium text-white">Temperature (°C)</label>
-                <input type="number" name="temperature" id="temperature" step="0.1"
-                       value="{{ old('temperature', $plant->temperature ?? '') }}"
-                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-            </div>
         </div>
 
         <!-- Buttons -->

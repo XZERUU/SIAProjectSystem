@@ -5,29 +5,50 @@ namespace App\Http\Controllers;
 use App\Models\Sensor;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TransactionController extends Controller
 {
     /**
      * Show a paginated list of all transactions (global index).
      */
-    public function globalIndex()
+    public function globalIndex(Request $request)
     {
-        // Eager-load each transaction’s sensor (and optionally sensor→plant if needed)
-        $transactions = Transaction::with('sensor')->orderBy('logged_at', 'desc')->paginate(10);
-        return view('transactions.globalIndex', compact('transactions'));
+        $search = $request->input('search');
+        $sensorFilter = $request->input('sensor');
+
+        $query = Transaction::with('sensor')->orderBy('logged_at', 'desc');
+
+        if ($search) {
+            $query->where('status', 'like', "%{$search}%")
+                ->orWhereHas('sensor', function ($q) use ($search) {
+                    $q->where('sensor_type', 'like', "%{$search}%");
+                });
+        }
+
+        if ($sensorFilter) {
+            $query->where('sensor_id', $sensorFilter);
+        }
+
+        $transactions = $query->paginate(10);
+        $sensors = Sensor::all();
+        $firstSensorId = $sensors->first()?->id;
+
+        return view('transactions.index', compact('transactions', 'sensors', 'search', 'sensorFilter', 'firstSensorId'));
     }
 
     /**
-     * Display a paginated list of transactions for a specific sensor.
+     * List transactions under a specific sensor.
      */
     public function index(Sensor $sensor)
     {
-        $transactions = $sensor->transactions()
-                               ->orderBy('logged_at', 'desc')
-                               ->paginate(10);
+        $transactions = $sensor->transactions()->latest('logged_at')->paginate(10);
+        $sensors = Sensor::all();
+        $search = null;
+        $sensorFilter = $sensor->id;
+        $firstSensorId = $sensor->id;
 
-        return view('transactions.index', compact('sensor', 'transactions'));
+        return view('transactions.index', compact('transactions', 'sensors', 'search', 'sensorFilter', 'firstSensorId'));
     }
 
     public function create(Sensor $sensor)
@@ -45,7 +66,7 @@ class TransactionController extends Controller
         $sensor->transactions()->create($validated);
 
         return redirect()
-            ->route('sensors.transactions.index', $sensor)
+            ->route('sensors.transactions.index', ['sensor' => $sensor->id])
             ->with('success', 'Transaction recorded.');
     }
 
@@ -69,7 +90,7 @@ class TransactionController extends Controller
         $transaction->update($validated);
 
         return redirect()
-            ->route('sensors.transactions.index', $sensor)
+            ->route('sensors.transactions.index', ['sensor' => $sensor->id])
             ->with('success', 'Transaction updated.');
     }
 
@@ -78,7 +99,18 @@ class TransactionController extends Controller
         $transaction->delete();
 
         return redirect()
-            ->route('sensors.transactions.index', $sensor)
+            ->route('sensors.transactions.index', ['sensor' => $sensor->id])
             ->with('success', 'Transaction removed.');
+    }
+
+    /**
+     * Export transactions as PDF.
+     */
+    public function exportPDF()
+    {
+        $transactions = Transaction::with('sensor')->get();
+        $pdf = Pdf::loadView('transactions.pdf', compact('transactions'));
+
+        return $pdf->download('transactions_report.pdf');
     }
 }

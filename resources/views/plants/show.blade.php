@@ -54,4 +54,14 @@
             </div>
         </div>
     </div>
+
+    <div class="mt-6">
+        @if(isset($plant) && $plant->id > 0)
+            <a href="{{ route('plants.sensors.create', $plant) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                Add Sensor
+            </a>
+        @else
+            <span class="text-red-500 font-semibold">Invalid plant ID. Cannot add sensor.</span>
+        @endif
+    </div>
 @endsection

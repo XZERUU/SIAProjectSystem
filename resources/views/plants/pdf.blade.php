@@ -20,7 +20,6 @@
                 <th>Plant Name</th>
                 <th>Growth Stage</th>
                 <th>Planting Date</th>
-                <th>Temperature (°C)</th>
             </tr>
         </thead>
         <tbody>
@@ -31,7 +30,6 @@
                 <td>{{ $plant->plant_name }}</td>
                 <td>{{ $plant->growth_stage }}</td>
                 <td>{{ $plant->planting_date }}</td>
-                <td>{{ $plant->temperature }}</td>
             </tr>
         @endforeach
         </tbody>

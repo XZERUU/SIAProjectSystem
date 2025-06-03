@@ -1,57 +1,98 @@
 @extends('layouts.app')
 
-@section('title', "Sensors for \"{$plant->plant_name}\"")
-
 @section('content')
-  <h1 class="text-2xl font-semibold mb-4">
-    Sensors for: {{ $plant->plant_name }}
-  </h1>
+<div class="max-w-7xl mx-auto px-4 py-10">
 
-  <a href="{{ route('plants.sensors.create', $plant) }}"
-     class="bg-green-600 text-white px-4 py-2 rounded mb-4 inline-block">
-    + Add Sensor
-  </a>
+    {{-- Header --}}
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold text-white">Sensor List</h1>
+        <div class="flex gap-3">
+            {{-- PDF Download --}}
+            <a href="{{ route('sensors.pdf') }}" 
+               class="flex items-center bg-white text-yellow-600 border border-yellow-500 hover:bg-yellow-500 hover:text-black px-4 py-2 rounded transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                PDF
+            </a>
 
-  <table class="min-w-full bg-white rounded shadow overflow-x-auto">
-    <thead class="bg-gray-100">
-      <tr>
-        <th class="px-4 py-2">ID</th>
-        <th class="px-4 py-2">Type</th>
-        <th class="px-4 py-2">Temp (°C)</th>
-        <th class="px-4 py-2">Water Level</th>
-        <th class="px-4 py-2">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      @forelse($sensors as $sensor)
-        <tr>
-          <td class="border px-4 py-2">{{ $sensor->id }}</td>
-          <td class="border px-4 py-2">{{ $sensor->sensor_type }}</td>
-          <td class="border px-4 py-2">{{ number_format($sensor->temperature, 2) }}</td>
-          <td class="border px-4 py-2">{{ number_format($sensor->water_level, 2) }}</td>
-          <td class="border px-4 py-2">
-            <a href="{{ route('plants.sensors.show', [$plant, $sensor]) }}"
-               class="text-blue-600">View</a>
-            <a href="{{ route('plants.sensors.edit', [$plant, $sensor]) }}"
-               class="text-green-600 ml-2">Edit</a>
-            <form method="POST"
-                  action="{{ route('plants.sensors.destroy', [$plant, $sensor]) }}"
-                  class="inline">
-              @csrf
-              @method('DELETE')
-              <button type="submit" class="text-red-600 ml-2">Delete</button>
-            </form>
-          </td>
-        </tr>
-      @empty
-        <tr>
-          <td colspan="5" class="text-center py-4">No sensors found.</td>
-        </tr>
-      @endforelse
-    </tbody>
-  </table>
+            {{-- Add Sensor --}}
+            @if($plant)
+                <a href="{{ route('plants.sensors.create', $plant->id) }}" 
+                   class="flex items-center bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Sensor
+                </a>
+            @endif
+        </div>
+    </div>
 
-  <div class="mt-4">
-    {{ $sensors->links() }}
-  </div>
+    {{-- Search --}}
+    <form method="GET" action="{{ route('sensors.globalIndex') }}" class="mb-6 flex flex-wrap gap-3 items-center justify-center sm:justify-start">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..." 
+               class="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring focus:ring-yellow-500" />
+
+        <select name="field" class="px-4 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring focus:ring-yellow-500">
+            <option value="custom_id" {{ request('field') == 'custom_id' ? 'selected' : '' }}>Custom ID</option>
+            <option value="plant_name" {{ request('field') == 'plant_name' ? 'selected' : '' }}>Plant Name</option>
+            <option value="sensor_type" {{ request('field') == 'sensor_type' ? 'selected' : '' }}>Sensor Type</option>
+            <option value="temperature" {{ request('field') == 'temperature' ? 'selected' : '' }}>Temperature</option>
+            <option value="water_level" {{ request('field') == 'water_level' ? 'selected' : '' }}>Water Level</option>
+        </select>
+
+        <button type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600 transition">
+            Search
+        </button>
+    </form>
+
+    {{-- Table --}}
+    <div class="overflow-x-auto bg-white rounded-lg shadow-md w-full">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-medium">Custom ID</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium">Plant Name</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium">Sensor Type</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium">Temperature</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium">Water Level</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700 divide-y divide-gray-200">
+                @forelse ($sensors as $sensor)
+                    <tr class="hover:bg-gray-100">
+                        <td class="px-6 py-4">{{ $sensor->custom_id ?? '-' }}</td>
+                        <td class="px-6 py-4">{{ $sensor->plant->plant_name ?? '-' }}</td>
+                        <td class="px-6 py-4">{{ $sensor->sensor_type }}</td>
+                        <td class="px-6 py-4">{{ $sensor->temperature }}</td>
+                        <td class="px-6 py-4">{{ $sensor->water_level }}</td>
+                        <td class="px-6 py-4 space-x-2">
+                            <a href="{{ route('plants.sensors.edit', [$sensor->plant_id, $sensor->id]) }}" 
+                               class="bg-gray-300 px-3 py-1 rounded hover:bg-gray-400">Edit</a>
+                            <form action="{{ route('plants.sensors.destroy', [$sensor->plant_id, $sensor->id]) }}" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" onclick="return confirm('Delete this sensor?')" 
+                                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-6 text-center text-gray-500">No sensors found.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- Pagination --}}
+    <div class="mt-6">
+        {{ $sensors->appends(request()->query())->links() }}
+    </div>
+</div>
 @endsection
